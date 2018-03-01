@@ -1,6 +1,6 @@
-const cheerio = require('cheerio');
 const fs = require('fs');
-const convert = require('xml-js');
+const convertXML = require('./controller/convertXML');
+const getCurrencyFromDate = require('./controller/getCurrencyFromDate');
 
 module.exports = function(date, currency, callback) {
 
@@ -8,15 +8,11 @@ module.exports = function(date, currency, callback) {
         if(err) { 
             console.log('Error reading file!', err); 
         } else {
-            convertXML(res);
+            processJSON(convertXML(res));
         }
     });
 
-    function convertXML(xml) {
-        let json = convert.xml2json(xml, {
-            compact: true
-        });
-
+    function processJSON(json) {
         let result = JSON.parse(json);
         let cubes = result.DataSet.Body.Cube;
         /**
@@ -33,16 +29,4 @@ module.exports = function(date, currency, callback) {
             }
         );
     }
-}
-
-function getCurrencyFromDate(cubes, date, currency) {
-    let cube = cubes.filter(e => e._attributes.date == date);
-    if(cube[0] != undefined) {
-        let rates = cube[0].Rate;
-        let result = rates.filter(e => e._attributes.currency == currency)[0]._text;
-        return result;
-    } else {
-        return "Error: There is no currency from this date.";
-    }
-
 }
